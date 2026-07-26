@@ -434,6 +434,7 @@
 
         if (this.isNoteMode) {
           if (num === 0) {
+            // Erase notes when in Note Mode
             this.notes[row][col].clear();
           } else {
             // Toggle note candidate
@@ -447,13 +448,8 @@
         } else {
           // Normal mode: enter number or erase
           if (num === 0) {
-            if (prevVal !== 0) {
-              // Erasing main number reveals preserved underlying pencil notes
-              this.currentBoard[row][col] = 0;
-            } else {
-              // Erasing an empty main cell clears its pencil notes
-              this.notes[row][col].clear();
-            }
+            // Erase main number only; preserve underlying pencil notes intact
+            this.currentBoard[row][col] = 0;
           } else if (prevVal === num) {
             // Toggling off the main number reveals underlying pencil notes
             this.currentBoard[row][col] = 0;
