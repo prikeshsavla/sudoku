@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canvas Sudoku</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      touch-action: manipulation;
+    }
+    /* Prevent unwanted canvas text selections or touch delays */
+    canvas {
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col items-center justify-between p-2 sm:p-4 select-none overflow-x-hidden">
+
+  <header class="w-full max-w-xl flex items-center justify-between py-2 px-3 bg-slate-800/80 backdrop-blur rounded-xl border border-slate-700 shadow-md mb-2">
+    <div class="flex items-center gap-2">
+      <div class="p-2 bg-indigo-600 rounded-lg text-white font-bold text-xl leading-none">
+        <i class="fa-solid font-mono">9</i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-white leading-tight">Sudoku Canvas</h1>
+        <p class="text-xs text-slate-400">Pencil notes & smart undo</p>
+      </div>
+    </div>
+
+    <!-- Timer and Difficulty controls -->
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <div class="text-xs text-slate-400 font-medium">TIME</div>
+        <div id="timerDisplay" class="font-mono text-sm font-semibold text-indigo-400">00:00</div>
+      </div>
+      <button id="pauseBtn" class="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors">
+        <i class="fa-solid fa-pause"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="w-full max-w-xl flex flex-col items-center gap-3 my-auto">
+    
+    <!-- Top toolbar for controls -->
+    <div class="w-full flex items-center justify-between gap-2 px-1">
+      <div class="flex items-center gap-2">
+        <select id="difficultySelect" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs sm:text-sm rounded-lg px-3 py-1.5 font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+          <option value="expert">Expert</option>
+        </select>
+
+        <button id="newGameBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-rotate-right"></i> New
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="undoBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow disabled:opacity-50 disabled:cursor-not-allowed" title="Undo (Ctrl+Z)">
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+          <span class="hidden sm:inline">Undo</span>
+        </button>
+
+        <button id="noteToggleBtn" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 shadow" title="Toggle Note Mode (N)">
+          <i class="fa-solid fa-pencil text-slate-400"></i>
+          <span>Note: <strong id="noteStatusText" class="text-slate-400">OFF</strong></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Canvas container with fixed aspect ratio square -->
+    <div id="canvasContainer" class="w-full relative aspect-square bg-slate-950 rounded-2xl border-2 border-slate-700 shadow-2xl p-1 flex items-center justify-center overflow-hidden">
+      <canvas id="sudokuCanvas" class="w-full h-full rounded-xl cursor-pointer"></canvas>
+      
+      <!-- Pause overlay -->
+      <div id="pauseOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur flex flex-col items-center justify-center gap-3 hidden z-20">
+        <i class="fa-solid fa-circle-pause text-5xl text-indigo-400"></i>
+        <p class="text-lg font-bold text-white">Game Paused</p>
+        <button id="resumeBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2 rounded-xl transition shadow">
+          Resume
+        </button>
+      </div>
+
+      <!-- Victory overlay -->
+      <div id="victoryOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur flex flex-col items-center justify-center gap-4 hidden z-20 animate-fade-in">
+        <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mb-1 border border-emerald-500/40">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-white">Puzzle Solved!</h2>
+        <p id="victoryTime" class="text-sm text-slate-300">Your time: 00:00</p>
+        <button id="victoryNewGameBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-2.5 rounded-xl transition shadow-lg mt-2">
+          Play Again
+        </button>
+      </div>
+    </div>
+
+    <!-- Interactive Keypad -->
+    <div class="w-full flex flex-col gap-2 mt-1">
+      <!-- 1-9 Buttons -->
+      <div class="grid grid-cols-9 gap-1.5">
+        <button data-key="1" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">1</button>
+        <button data-key="2" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">2</button>
+        <button data-key="3" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">3</button>
+        <button data-key="4" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">4</button>
+        <button data-key="5" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">5</button>
+        <button data-key="6" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">6</button>
+        <button data-key="7" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">7</button>
+        <button data-key="8" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">8</button>
+        <button data-key="9" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-colors shadow flex items-center justify-center">9</button>
+      </div>
+
+      <!-- Action buttons row -->
+      <div class="grid grid-cols-3 gap-2 mt-1">
+        <button id="eraseBtn" class="h-11 bg-slate-800 hover:bg-slate-700 active:bg-rose-900/40 text-rose-400 font-medium text-xs sm:text-sm rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 shadow">
+          <i class="fa-solid fa-eraser"></i> Erase
+        </button>
+        <button id="hintBtn" class="h-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-900/40 text-amber-400 font-medium text-xs sm:text-sm rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 shadow">
+          <i class="fa-regular fa-lightbulb"></i> Hint
+        </button>
+        <button id="checkBtn" class="h-11 bg-slate-800 hover:bg-slate-700 active:bg-emerald-900/40 text-emerald-400 font-medium text-xs sm:text-sm rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 shadow">
+          <i class="fa-solid fa-circle-check"></i> Check
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-100 border border-slate-700 px-4 py-2 rounded-xl text-sm shadow-xl opacity-0 transition-opacity duration-300 pointer-events-none z-30">
+    Notification
+  </div>
+
+  <footer class="w-full text-center py-2 text-xs text-slate-500">
+    Keyboard: Arrow keys to move • 1-9 Numbers • Backspace/Del • 'N' Notes • 'U' Undo
+  </footer>
+
+  <script>
+    /* Global Sudoku App Controller */
+    class SudokuGame {
+      constructor() {
+        this.canvas = document.getElementById('sudokuCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.container = document.getElementById('canvasContainer');
+
+        // Grid parameters
+        this.gridSize = 9;
+        this.cellSize = 0;
+        this.selectedCell = null; // { row, col }
+
+        // Game State arrays
+        this.solution = Array(9).fill(0).map(() => Array(9).fill(0));
+        this.initial = Array(9).fill(0).map(() => Array(9).fill(0));
+        this.board = Array(9).fill(0).map(() => Array(9).fill(0));
+        // Notes: 9x9 array of Sets
+        this.notes = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
+        // Errors: 9x9 boolean array indicating rule violation
+        this.errors = Array(9).fill(0).map(() => Array(9).fill(false));
+
+        // Settings & State
+        this.isNoteMode = false;
+        this.undoStack = [];
+        this.timer = 0;
+        this.timerInterval = null;
+        this.isPaused = false;
+        this.isGameOver = false;
+
+        this.init();
+      }
+
+      init() {
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+
+        // Attach UI listeners
+        this.setupEventListeners();
+
+        // Start initial game
+        this.startNewGame('medium');
+      }
+
+      setupEventListeners() {
+        // Canvas interaction
+        this.canvas.addEventListener('pointerdown', (e) => this.handleCanvasClick(e));
+
+        // Controls
+        document.getElementById('newGameBtn').addEventListener('click', () => {
+          const diff = document.getElementById('difficultySelect').value;
+          this.startNewGame(diff);
+        });
+
+        document.getElementById('noteToggleBtn').addEventListener('click', () => this.toggleNoteMode());
+
+        document.getElementById('undoBtn').addEventListener('click', () => this.undo());
+
+        document.getElementById('eraseBtn').addEventListener('click', () => this.eraseSelected());
+
+        document.getElementById('hintBtn').addEventListener('click', () => this.giveHint());
+
+        document.getElementById('checkBtn').addEventListener('click', () => this.verifyBoard());
+
+        // Number Pad
+        document.querySelectorAll('.num-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const num = parseInt(btn.getAttribute('data-key'));
+            this.handleInput(num);
+          });
+        });
+
+        // Pause / Resume
+        document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
+        document.getElementById('resumeBtn').addEventListener('click', () => this.togglePause());
+
+        document.getElementById('victoryNewGameBtn').addEventListener('click', () => {
+          document.getElementById('victoryOverlay').classList.add('hidden');
+          const diff = document.getElementById('difficultySelect').value;
+          this.startNewGame(diff);
+        });
+
+        // Keyboard navigation & inputs
+        window.addEventListener('keydown', (e) => this.handleKeyDown(e));
+      }
+
+      resizeCanvas() {
+        const rect = this.container.getBoundingClientRect();
+        const size = Math.floor(rect.width);
+        const dpr = window.devicePixelRatio || 1;
+
+        this.canvas.width = size * dpr;
+        this.canvas.height = size * dpr;
+        this.canvas.style.width = `${size}px`;
+        this.canvas.style.height = `${size}px`;
+
+        this.ctx.scale(dpr, dpr);
+        this.cellSize = size / 9;
+
+        this.render();
+      }
+
+      generatePuzzle(difficulty) {
+        // Clear board & solution
+        this.solution = Array(9).fill(0).map(() => Array(9).fill(0));
+        this.fillGrid(this.solution);
+
+        // Copy solution to initial board
+        this.initial = this.solution.map(row => [...row]);
+
+        // Remove cells based on difficulty
+        let attempts = 30;
+        switch (difficulty) {
+          case 'easy': attempts = 32; break;
+          case 'medium': attempts = 42; break;
+          case 'hard': attempts = 50; break;
+          case 'expert': attempts = 56; break;
+        }
+
+        while (attempts > 0) {
+          let r = Math.floor(Math.random() * 9);
+          let c = Math.floor(Math.random() * 9);
+          if (this.initial[r][c] !== 0) {
+            this.initial[r][c] = 0;
+            attempts--;
+          }
+        }
+
+        // Copy initial to playable board
+        this.board = this.initial.map(row => [...row]);
+        this.notes = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
+        this.undoStack = [];
+        this.updateUndoButton();
+        this.checkConflicts();
+      }
+
+      fillGrid(grid) {
+        let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        for (let i = 0; i < 81; i++) {
+          let row = Math.floor(i / 9);
+          let col = i % 9;
+          if (grid[row][col] === 0) {
+            numbers.sort(() => Math.random() - 0.5);
+            for (let num of numbers) {
+              if (this.isValidPlacement(grid, row, col, num)) {
+                grid[row][col] = num;
+                if (this.checkGridFull(grid) || this.fillGrid(grid)) {
+                  return true;
+                }
+                grid[row][col] = 0;
+              }
+            }
+            return false;
+          }
+        }
+        return true;
+      }
+
+      checkGridFull(grid) {
+        return grid.every(row => row.every(val => val !== 0));
+      }
+
+      isValidPlacement(grid, row, col, num) {
+        for (let i = 0; i < 9; i++) {
+          if (grid[row][i] === num && i !== col) return false;
+          if (grid[i][col] === num && i !== row) return false;
+        }
+        let boxRow = Math.floor(row / 3) * 3;
+        let boxCol = Math.floor(col / 3) * 3;
+        for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 3; c++) {
+            let currR = boxRow + r;
+            let currC = boxCol + c;
+            if (grid[currR][currC] === num && (currR !== row || currC !== col)) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      checkConflicts() {
+        // Reset errors
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            this.errors[r][c] = false;
+          }
+        }
+
+        // Check for duplicates in rows, columns, and 3x3 boxes
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            let val = this.board[r][c];
+            if (val === 0) continue;
+
+            // Check duplicate in same row/col/box
+            if (!this.isValidPlacement(this.board, r, c, val)) {
+              this.errors[r][c] = true;
+            }
+          }
+        }
+      }
+
+      startNewGame(difficulty) {
+        this.isGameOver = false;
+        this.selectedCell = null;
+        this.generatePuzzle(difficulty);
+        this.resetTimer();
+        this.startTimer();
+        document.getElementById('victoryOverlay').classList.add('hidden');
+        this.showToast(`New ${difficulty.toUpperCase()} game started`);
+        this.render();
+      }
+
+      startTimer() {
+        clearInterval(this.timerInterval);
+        this.timerInterval = setInterval(() => {
+          if (!this.isPaused && !this.isGameOver) {
+            this.timer++;
+            this.updateTimerDisplay();
+          }
+        }, 1000);
+      }
+
+      resetTimer() {
+        this.timer = 0;
+        this.updateTimerDisplay();
+      }
+
+      updateTimerDisplay() {
+        const mins = Math.floor(this.timer / 60).toString().padStart(2, '0');
+        const secs = (this.timer % 60).toString().padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+      }
+
+      togglePause() {
+        this.isPaused = !this.isPaused;
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        const pauseBtn = document.getElementById('pauseBtn');
+
+        if (this.isPaused) {
+          pauseOverlay.classList.remove('hidden');
+          pauseBtn.innerHTML = `<i class="fa-solid fa-play"></i>`;
+        } else {
+          pauseOverlay.classList.add('hidden');
+          pauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
+        }
+        this.render();
+      }
+
+      toggleNoteMode() {
+        this.isNoteMode = !this.isNoteMode;
+        const btn = document.getElementById('noteToggleBtn');
+        const statusText = document.getElementById('noteStatusText');
+
+        if (this.isNoteMode) {
+          btn.classList.add('bg-indigo-600', 'border-indigo-500', 'text-white');
+          btn.classList.remove('bg-slate-800', 'border-slate-700', 'text-slate-300');
+          statusText.textContent = 'ON';
+          statusText.className = 'text-indigo-200';
+        } else {
+          btn.classList.remove('bg-indigo-600', 'border-indigo-500', 'text-white');
+          btn.classList.add('bg-slate-800', 'border-slate-700', 'text-slate-300');
+          statusText.textContent = 'OFF';
+          statusText.className = 'text-slate-400';
+        }
+      }
+
+      handleCanvasClick(e) {
+        if (this.isPaused || this.isGameOver) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const col = Math.floor(x / (rect.width / 9));
+        const row = Math.floor(y / (rect.height / 9));
+
+        if (row >= 0 && row < 9 && col >= 0 && col < 9) {
+          this.selectedCell = { row, col };
+          this.render();
+        }
+      }
+
+      handleKeyDown(e) {
+        if (this.isPaused || this.isGameOver) return;
+
+        if (e.key >= '1' && e.key <= '9') {
+          this.handleInput(parseInt(e.key));
+        } else if (e.key === 'Backspace' || e.key === 'Delete') {
+          this.eraseSelected();
+        } else if (e.key.toLowerCase() === 'n') {
+          this.toggleNoteMode();
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+          this.undo();
+        } else if (e.key.toLowerCase() === 'u') {
+          this.undo();
+        } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+          e.preventDefault();
+          this.navigateWithArrows(e.key);
+        }
+      }
+
+      navigateWithArrows(key) {
+        if (!this.selectedCell) {
+          this.selectedCell = { row: 0, col: 0 };
+          this.render();
+          return;
+        }
+
+        let { row, col } = this.selectedCell;
+        if (key === 'ArrowUp') row = (row - 1 + 9) % 9;
+        if (key === 'ArrowDown') row = (row + 1) % 9;
+        if (key === 'ArrowLeft') col = (col - 1 + 9) % 9;
+        if (key === 'ArrowRight') col = (col + 1) % 9;
+
+        this.selectedCell = { row, col };
+        this.render();
+      }
+
+      handleInput(num) {
+        if (!this.selectedCell || this.isPaused || this.isGameOver) return;
+        const { row, col } = this.selectedCell;
+
+        // Given initial numbers cannot be modified
+        if (this.initial[row][col] !== 0) {
+          this.showToast("Cannot edit initial puzzle digits!");
+          return;
+        }
+
+        const prevValue = this.board[row][col];
+        const prevNotes = new Set(this.notes[row][col]);
+
+        if (this.isNoteMode) {
+          // If a main number is already placed, clear it first before adding notes
+          let newBoardValue = prevValue;
+          if (prevValue !== 0) {
+            newBoardValue = 0;
+            this.board[row][col] = 0;
+          }
+
+          let newNotes = new Set(this.notes[row][col]);
+          if (newNotes.has(num)) {
+            newNotes.delete(num);
+          } else {
+            newNotes.add(num);
+          }
+          this.notes[row][col] = newNotes;
+
+          // Record action for Undo
+          this.recordAction({
+            row, col,
+            prevValue,
+            newValue: newBoardValue,
+            prevNotes,
+            newNotes: new Set(newNotes)
+          });
+        } else {
+          // Normal mode: Set or toggle main digit
+          const newValue = (prevValue === num) ? 0 : num;
+          this.board[row][col] = newValue;
+          // Clear pencil notes in this cell when digit is set
+          const newNotes = new Set();
+          this.notes[row][col] = newNotes;
+
+          this.recordAction({
+            row, col,
+            prevValue,
+            newValue,
+            prevNotes,
+            newNotes
+          });
+        }
+
+        this.checkConflicts();
+        this.checkVictory();
+        this.render();
+      }
+
+      eraseSelected() {
+        if (!this.selectedCell || this.isPaused || this.isGameOver) return;
+        const { row, col } = this.selectedCell;
+
+        if (this.initial[row][col] !== 0) return;
+
+        const prevValue = this.board[row][col];
+        const prevNotes = new Set(this.notes[row][col]);
+
+        if (prevValue === 0 && prevNotes.size === 0) return;
+
+        this.board[row][col] = 0;
+        this.notes[row][col] = new Set();
+
+        this.recordAction({
+          row, col,
+          prevValue,
+          newValue: 0,
+          prevNotes,
+          newNotes: new Set()
+        });
+
+        this.checkConflicts();
+        this.render();
+      }
+
+      recordAction(action) {
+        this.undoStack.push(action);
+        this.updateUndoButton();
+      }
+
+      undo() {
+        if (this.undoStack.length === 0 || this.isPaused || this.isGameOver) return;
+
+        const lastAction = this.undoStack.pop();
+        const { row, col, prevValue, prevNotes } = lastAction;
+
+        this.board[row][col] = prevValue;
+        this.notes[row][col] = new Set(prevNotes);
+
+        this.selectedCell = { row, col };
+        this.updateUndoButton();
+        this.checkConflicts();
+        this.render();
+        this.showToast("Action Undone");
+      }
+
+      updateUndoButton() {
+        const undoBtn = document.getElementById('undoBtn');
+        undoBtn.disabled = this.undoStack.length === 0;
+      }
+
+      giveHint() {
+        if (this.isPaused || this.isGameOver) return;
+
+        // Find empty or wrong cells
+        let targetCells = [];
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            if (this.initial[r][c] === 0 && this.board[r][c] !== this.solution[r][c]) {
+              targetCells.push({ r, c });
+            }
+          }
+        }
+
+        if (targetCells.length === 0) {
+          this.showToast("Board is already correct!");
+          return;
+        }
+
+        const pick = targetCells[Math.floor(Math.random() * targetCells.length)];
+        const { r, c } = pick;
+
+        const prevValue = this.board[r][c];
+        const prevNotes = new Set(this.notes[r][c]);
+
+        this.board[r][c] = this.solution[r][c];
+        this.notes[r][c] = new Set();
+        this.selectedCell = { row: r, col: c };
+
+        this.recordAction({
+          row: r, col: c,
+          prevValue,
+          newValue: this.solution[r][c],
+          prevNotes,
+          newNotes: new Set()
+        });
+
+        this.checkConflicts();
+        this.checkVictory();
+        this.render();
+        this.showToast("Hint applied!");
+      }
+
+      verifyBoard() {
+        let errorCount = 0;
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            if (this.board[r][c] !== 0 && this.board[r][c] !== this.solution[r][c]) {
+              this.errors[r][c] = true;
+              errorCount++;
+            }
+          }
+        }
+        if (errorCount > 0) {
+          this.showToast(`Found ${errorCount} mistake(s)!`);
+        } else {
+          this.showToast("No errors found so far!");
+        }
+        this.render();
+      }
+
+      checkVictory() {
+        let isComplete = true;
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            if (this.board[r][c] === 0 || this.board[r][c] !== this.solution[r][c]) {
+              isComplete = false;
+              break;
+            }
+          }
+        }
+
+        if (isComplete) {
+          this.isGameOver = true;
+          clearInterval(this.timerInterval);
+          document.getElementById('victoryTime').textContent = `Your time: ${document.getElementById('timerDisplay').textContent}`;
+          document.getElementById('victoryOverlay').classList.remove('hidden');
+        }
+      }
+
+      render() {
+        const size = this.canvas.width / (window.devicePixelRatio || 1);
+        const cell = size / 9;
+
+        // Clear background
+        this.ctx.fillStyle = '#0f172a'; // slate-900
+        this.ctx.fillRect(0, 0, size, size);
+
+        if (this.isPaused) return;
+
+        const selectedVal = this.selectedCell ? this.board[this.selectedCell.row][this.selectedCell.col] : null;
+
+        // 1. Draw Highlights
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            const x = c * cell;
+            const y = r * cell;
+
+            let isSelected = this.selectedCell && this.selectedCell.row === r && this.selectedCell.col === c;
+            let isRelated = this.selectedCell && (this.selectedCell.row === r || this.selectedCell.col === c || (Math.floor(r/3) === Math.floor(this.selectedCell.row/3) && Math.floor(c/3) === Math.floor(this.selectedCell.col/3)));
+            let isSameNumber = selectedVal && selectedVal !== 0 && this.board[r][c] === selectedVal;
+            let isError = this.errors[r][c];
+
+            if (isError) {
+              this.ctx.fillStyle = '#451a03'; // Error subtle red-amber
+              if (isSelected) this.ctx.fillStyle = '#7f1d1d';
+              this.ctx.fillRect(x, y, cell, cell);
+            } else if (isSelected) {
+              this.ctx.fillStyle = '#3730a3'; // Active cell indigo
+              this.ctx.fillRect(x, y, cell, cell);
+            } else if (isSameNumber) {
+              this.ctx.fillStyle = '#1e3a8a'; // Same number blue highlight
+              this.ctx.fillRect(x, y, cell, cell);
+            } else if (isRelated) {
+              this.ctx.fillStyle = '#1e293b'; // Row/Col/Box highlight
+              this.ctx.fillRect(x, y, cell, cell);
+            }
+          }
+        }
+
+        // 2. Draw Grid Lines
+        for (let i = 0; i <= 9; i++) {
+          const pos = i * cell;
+          this.ctx.beginPath();
+          this.ctx.lineWidth = (i % 3 === 0) ? 3 : 1;
+          this.ctx.strokeStyle = (i % 3 === 0) ? '#64748b' : '#334155';
+          
+          // Vertical Line
+          this.ctx.moveTo(pos, 0);
+          this.ctx.lineTo(pos, size);
+          // Horizontal Line
+          this.ctx.moveTo(0, pos);
+          this.ctx.lineTo(size, pos);
+          
+          this.ctx.stroke();
+        }
+
+        // 3. Draw Numbers & Pencil Notes
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            const val = this.board[r][c];
+            const x = c * cell;
+            const y = r * cell;
+
+            if (val !== 0) {
+              // Main Number
+              this.ctx.textAlign = 'center';
+              this.ctx.textBaseline = 'middle';
+              this.ctx.font = this.initial[r][c] !== 0 
+                ? 'bold ' + Math.floor(cell * 0.55) + 'px Inter, sans-serif'
+                : '600 ' + Math.floor(cell * 0.55) + 'px Inter, sans-serif';
+
+              if (this.errors[r][c]) {
+                this.ctx.fillStyle = '#f87171'; // Red text for conflicts
+              } else if (this.initial[r][c] !== 0) {
+                this.ctx.fillStyle = '#f8fafc'; // White for givens
+              } else {
+                this.ctx.fillStyle = '#818cf8'; // Indigo accent for user filled
+              }
+
+              this.ctx.fillText(val, x + cell / 2, y + cell / 2 + 2);
+            } else {
+              // Pencil Notes
+              const notesSet = this.notes[r][c];
+              if (notesSet.size > 0) {
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.font = '500 ' + Math.floor(cell * 0.22) + 'px Inter, sans-serif';
+                this.ctx.fillStyle = '#94a3b8'; // Slate notes color
+
+                const subCell = cell / 3;
+                notesSet.forEach(num => {
+                  const noteR = Math.floor((num - 1) / 3);
+                  const noteC = (num - 1) % 3;
+                  const noteX = x + noteC * subCell + subCell / 2;
+                  const noteY = y + noteR * subCell + subCell / 2 + 1;
+                  this.ctx.fillText(num, noteX, noteY);
+                });
+              }
+            }
+          }
+        }
+      }
+
+      showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        clearTimeout(this.toastTimeout);
+        this.toastTimeout = setTimeout(() => {
+          toast.style.opacity = '0';
+        }, 2000);
+      }
+    }
+
+    // Initialize application when loaded
+    window.onload = () => {
+      window.sudokuApp = new SudokuGame();
+    };
+  </script>
+</body>
+</html>
