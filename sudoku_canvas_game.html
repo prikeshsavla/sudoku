@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sudoku Canvas" />
   <title>Canvas Sudoku</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -35,6 +40,11 @@
 
     <!-- Timer and Difficulty controls -->
     <div class="flex items-center gap-3">
+      <button id="installAppBtn" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow animate-pulse" title="Install App">
+        <i class="fa-solid fa-download"></i>
+        <span class="hidden sm:inline">Install</span>
+      </button>
+
       <div class="text-right">
         <div class="text-xs text-slate-400 font-medium">TIME</div>
         <div id="timerDisplay" class="font-mono text-sm font-semibold text-indigo-400">00:00</div>
@@ -134,6 +144,34 @@
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-100 border border-slate-700 px-4 py-2 rounded-xl text-sm shadow-xl opacity-0 transition-opacity duration-300 pointer-events-none z-30">
     Notification
+  </div>
+
+  <!-- iOS Install Instructions Modal -->
+  <div id="iosInstallModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur flex items-center justify-center p-4 hidden z-40">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl flex flex-col items-center gap-4">
+      <div class="w-12 h-12 bg-indigo-600/20 text-indigo-400 rounded-2xl flex items-center justify-center text-2xl border border-indigo-500/30">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-white mb-1">Install on iOS</h3>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          To install this app on your iPhone or iPad:
+        </p>
+      </div>
+      <ol class="text-xs text-slate-300 text-left space-y-2 bg-slate-900/60 p-3 rounded-xl w-full border border-slate-700/50">
+        <li class="flex items-center gap-2">
+          <span class="w-5 h-5 bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold">1</span>
+          <span>Tap the <strong class="text-indigo-400">Share</strong> icon in Safari.</span>
+        </li>
+        <li class="flex items-center gap-2">
+          <span class="w-5 h-5 bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold">2</span>
+          <span>Scroll down and select <strong class="text-indigo-400">Add to Home Screen</strong>.</span>
+        </li>
+      </ol>
+      <button onclick="document.getElementById('iosInstallModal').classList.add('hidden')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs py-2.5 rounded-xl transition">
+        Got it
+      </button>
+    </div>
   </div>
 
   <footer class="w-full text-center py-2 text-xs text-slate-500">
@@ -765,9 +803,111 @@
       }
     }
 
-    // Initialize application when loaded
+    function setupPWA() {
+      // 1. Generate Manifest dynamically
+      const manifest = {
+        name: "Sudoku Canvas App",
+        short_name: "Sudoku",
+        description: "Canvas Sudoku with Pencil Notes, Undo & Offline Mode",
+        start_url: "./",
+        display: "standalone",
+        background_color: "#0f172a",
+        theme_color: "#0f172a",
+        icons: [
+          {
+            src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'><rect width='192' height='192' rx='36' fill='%234f46e5'/><text x='96' y='130' font-family='sans-serif' font-size='120' font-weight='bold' fill='white' text-anchor='middle'>9</text></svg>",
+            sizes: "192x192",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          },
+          {
+            src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%234f46e5'/><text x='256' y='345' font-family='sans-serif' font-size='310' font-weight='bold' fill='white' text-anchor='middle'>9</text></svg>",
+            sizes: "512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          }
+        ]
+      };
+
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+      const manifestURL = URL.createObjectURL(manifestBlob);
+      const manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = manifestURL;
+      document.head.appendChild(manifestLink);
+
+      // Apple Touch Icon
+      const appleIcon = document.createElement('link');
+      appleIcon.rel = 'apple-touch-icon';
+      appleIcon.href = manifest.icons[0].src;
+      document.head.appendChild(appleIcon);
+
+      // 2. Register Service Worker via Blob
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          const CACHE_NAME = 'sudoku-pwa-v1';
+          self.addEventListener('install', (e) => self.skipWaiting());
+          self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+          self.addEventListener('fetch', (e) => {
+            e.respondWith(
+              fetch(e.request).catch(() => caches.match(e.request))
+            );
+          });
+        `;
+        try {
+          const swBlob = new Blob([swCode], { type: 'text/javascript' });
+          const swUrl = URL.createObjectURL(swBlob);
+          navigator.serviceWorker.register(swUrl).catch(err => {
+            console.log('PWA SW notice:', err);
+          });
+        } catch (e) {
+          console.log('SW init:', e);
+        }
+      }
+
+      // 3. PWA Install prompt handling
+      let deferredPrompt = null;
+      const installBtn = document.getElementById('installAppBtn');
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installBtn) installBtn.classList.remove('hidden');
+      });
+
+      window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        if (installBtn) installBtn.classList.add('hidden');
+        if (window.sudokuApp) window.sudokuApp.showToast("App installed successfully!");
+      });
+
+      if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              installBtn.classList.add('hidden');
+            }
+            deferredPrompt = null;
+          } else {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+              document.getElementById('iosInstallModal').classList.remove('hidden');
+            } else {
+              if (window.sudokuApp) {
+                window.sudokuApp.showToast("Use browser menu 'Add to Home Screen'");
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Initialize application & PWA setup when loaded
     window.onload = () => {
       window.sudokuApp = new SudokuGame();
+      setupPWA();
     };
   </script>
 </body>
