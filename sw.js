@@ -4,6 +4,8 @@ const CACHE_NAME = 'github-pwa-v1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './style.css',
+  './sudoku.js',
   './app.js'
 ];
 
