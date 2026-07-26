@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -33,7 +34,8 @@
       padding: 0;
     }
 
-    html, body {
+    html,
+    body {
       height: 100%;
       background-color: var(--bg-main);
       color: var(--text-main);
@@ -63,7 +65,7 @@
       backdrop-filter: blur(8px);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       margin-bottom: 6px;
     }
 
@@ -192,8 +194,9 @@
       padding: 6px 12px;
       border-radius: 8px;
       gap: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
+
     .btn-primary:hover {
       background: var(--primary-hover);
     }
@@ -207,8 +210,9 @@
       padding: 6px 12px;
       border-radius: 8px;
       gap: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
+
     .btn-secondary:hover {
       background: var(--bg-input-hover);
     }
@@ -220,6 +224,7 @@
       border-radius: 8px;
       border: 1px solid var(--border-color);
     }
+
     .btn-icon:hover {
       background: var(--bg-input-hover);
       color: #ffffff;
@@ -235,13 +240,21 @@
       gap: 5px;
       animation: pulse 2s infinite;
     }
+
     .btn-install:hover {
       background: var(--emerald-hover);
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.75; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.75;
+      }
     }
 
     .canvas-container {
@@ -251,7 +264,7 @@
       background: #020617;
       border-radius: 16px;
       border: 2px solid var(--border-color);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
       padding: 4px;
       display: flex;
       align-items: center;
@@ -290,11 +303,13 @@
       font-weight: 500;
       border-radius: 12px;
       gap: 6px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+
     .action-btn:hover:not(:disabled) {
       background: var(--bg-input-hover);
     }
+
     .action-btn:disabled {
       opacity: 0.4;
       cursor: not-allowed;
@@ -314,8 +329,9 @@
       background: var(--border-color);
       color: var(--text-muted);
     }
+
     .badge-note.active {
-      background: rgba(255,255,255,0.25);
+      background: rgba(255, 255, 255, 0.25);
       color: #ffffff;
     }
 
@@ -333,11 +349,13 @@
       font-size: 18px;
       font-weight: 700;
       border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+
     .num-btn:hover {
       background: var(--bg-input-hover);
     }
+
     .num-btn:active {
       background: var(--primary);
       transform: scale(0.95);
@@ -386,7 +404,7 @@
       padding: 8px 16px;
       border-radius: 10px;
       font-size: 13px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
@@ -404,8 +422,13 @@
     svg {
       flex-shrink: 0;
     }
+    .feedback-link{
+      color: white;
+      text-decoration: none;
+    }
   </style>
 </head>
+
 <body>
 
   <!-- Header section -->
@@ -414,13 +437,19 @@
       <div class="brand-icon">9</div>
       <div>
         <h1 class="brand-title">Sudoku Canvas</h1>
-        <p class="brand-sub">Offline PWA & Local Storage <span id="status">Checking connection status...</span></p>
+        <p class="brand-sub">Offline PWA & Local Storage <span id="status">Checking connection status...</span>         <!-- GitHub Feature Request Button -->
+        <a href="https://github.com/prikeshsavla/sudoku/issues/new?title=[Feature%20Request]:%20&amp;labels=enhancement" target="_blank" rel="noopener noreferrer" aria-label="Request a feature on GitHub">
+          <span>💬 Feedback</span>
+        </a></p>
       </div>
     </div>
 
     <div class="header-right">
       <button id="installAppBtn" class="btn-install hidden" title="Install App">
-        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
         <span>Install</span>
       </button>
 
@@ -430,7 +459,11 @@
       </div>
 
       <button id="pauseBtn" class="btn-icon" title="Pause Game">
-        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+            clip-rule="evenodd" />
+        </svg>
       </button>
     </div>
   </header>
@@ -448,12 +481,18 @@
         </select>
 
         <button id="newGameBtn" class="btn-primary">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
           New Game
         </button>
 
         <button id="resetBtn" class="btn-secondary" title="Reset puzzle to initial state">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v-3a8 8 0 0114.9-3M20 12v3a8 8 0 01-14.9 3"/></svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 12v-3a8 8 0 0114.9-3M20 12v3a8 8 0 01-14.9 3" />
+          </svg>
           Reset
         </button>
       </div>
@@ -466,10 +505,14 @@
     <!-- Canvas Container -->
     <div id="canvasContainer" class="canvas-container">
       <canvas id="sudokuCanvas"></canvas>
-      
+
       <!-- Pause Overlay -->
       <div id="pauseOverlay" class="overlay hidden">
-        <svg width="48" height="48" fill="#818cf8" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <svg width="48" height="48" fill="#818cf8" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+            clip-rule="evenodd" />
+        </svg>
         <p style="font-size: 18px; font-weight: 700; color: #fff;">Game Paused</p>
         <button id="resumeBtn" class="btn-primary" style="padding: 8px 20px;">Resume</button>
       </div>
@@ -477,11 +520,16 @@
       <!-- Victory Overlay -->
       <div id="victoryOverlay" class="overlay hidden">
         <div class="victory-badge">
-          <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l1.954.682a2 2 0 011.233 2.502l-.68 2.04 1.706 1.138a2 2 0 01.787 2.68l-1 1.732a2 2 0 01-2.417.848L11 15.323V17a1 1 0 01-2 0v-1.677l-1.583.625a2 2 0 01-2.417-.848l-1-1.732a2 2 0 01.787-2.68l1.706-1.138-.68-2.04a2 2 0 011.233-2.502L8 4.323V3a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+          <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+              d="M10 2a1 1 0 011 1v1.323l1.954.682a2 2 0 011.233 2.502l-.68 2.04 1.706 1.138a2 2 0 01.787 2.68l-1 1.732a2 2 0 01-2.417.848L11 15.323V17a1 1 0 01-2 0v-1.677l-1.583.625a2 2 0 01-2.417-.848l-1-1.732a2 2 0 01.787-2.68l1.706-1.138-.68-2.04a2 2 0 011.233-2.502L8 4.323V3a1 1 0 011-1z"
+              clip-rule="evenodd" />
+          </svg>
         </div>
         <h2 style="font-size: 22px; font-weight: 700; color: #fff;">Puzzle Solved!</h2>
         <p id="victoryTime" style="font-size: 14px; color: var(--text-muted);">Your time: 00:00</p>
-        <button id="victoryNewGameBtn" class="btn-primary" style="background: var(--emerald); padding: 10px 24px; margin-top: 6px;">Play Again</button>
+        <button id="victoryNewGameBtn" class="btn-primary"
+          style="background: var(--emerald); padding: 10px 24px; margin-top: 6px;">Play Again</button>
       </div>
     </div>
 
@@ -489,18 +537,27 @@
     <div class="controls-group">
       <div class="action-grid">
         <button id="undoBtn" class="action-btn" title="Undo Move (Ctrl+Z)">
-          <svg width="14" height="14" fill="none" stroke="#818cf8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          <svg width="14" height="14" fill="none" stroke="#818cf8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
           <span>Undo</span>
         </button>
 
         <button id="noteToggleBtn" class="action-btn" title="Toggle Note Mode (N)">
-          <svg width="14" height="14" fill="none" stroke="#fbbf24" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          <svg width="14" height="14" fill="none" stroke="#fbbf24" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
           <span>Note</span>
           <span id="noteStatusText" class="badge-note">OFF</span>
         </button>
 
         <button id="eraseBtn" class="action-btn" style="color: #f87171;" title="Erase Cell">
-          <svg width="14" height="14" fill="none" stroke="#f87171" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <svg width="14" height="14" fill="none" stroke="#f87171" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
           <span>Erase</span>
         </button>
       </div>
@@ -531,10 +588,10 @@
       background_color: "#0f172a",
       theme_color: "#0f172a",
       icons: [
-        { src: "https://placehold.co/192x192/0f172a/6366f1?text=Sudoku", sizes: "192x192", type: "image/png" },
-        { src: "https://placehold.co/512x512/0f172a/6366f1?text=Sudoku", sizes: "512x512", type: "image/png" }
+        {src: "https://placehold.co/192x192/0f172a/6366f1?text=Sudoku", sizes: "192x192", type: "image/png"},
+        {src: "https://placehold.co/512x512/0f172a/6366f1?text=Sudoku", sizes: "512x512", type: "image/png"}
       ]
-    })], { type: 'application/json' });
+    })], {type: 'application/json'});
     const manifestUrl = URL.createObjectURL(manifestBlob);
     const manifestLink = document.createElement('link');
     manifestLink.rel = 'manifest';
@@ -568,7 +625,7 @@
           );
         });
       `;
-      const swBlob = new Blob([swCode], { type: 'text/javascript' });
+      const swBlob = new Blob([swCode], {type: 'text/javascript'});
       navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(err => console.log('SW Error:', err));
     }
 
@@ -577,13 +634,13 @@
         this.canvas = document.getElementById('sudokuCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.gridSize = 9;
-        
+
         this.initialBoard = Array(9).fill(null).map(() => Array(9).fill(0));
         this.currentBoard = Array(9).fill(null).map(() => Array(9).fill(0));
         this.solution = Array(9).fill(null).map(() => Array(9).fill(0));
         this.notes = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
         this.conflicts = Array(9).fill(null).map(() => Array(9).fill(false));
-        
+
         this.selectedCell = null;
         this.isNoteMode = false;
         this.undoStack = [];
@@ -639,7 +696,7 @@
           const raw = localStorage.getItem(this.STORAGE_KEY);
           if (!raw) return false;
           const data = JSON.parse(raw);
-          
+
           if (!data || !data.currentBoard || !data.initialBoard) return false;
 
           this.initialBoard = data.initialBoard;
@@ -648,7 +705,7 @@
           this.notes = data.notes.map(row => row.map(arr => new Set(arr)));
           this.secondsElapsed = data.secondsElapsed || 0;
           this.isVictory = data.isVictory || false;
-          
+
           if (data.difficulty) {
             document.getElementById('difficultySelect').value = data.difficulty;
           }
@@ -695,13 +752,13 @@
         this.isVictory = false;
         document.getElementById('victoryOverlay').classList.add('hidden');
         document.getElementById('pauseOverlay').classList.add('hidden');
-        
+
         this.solution = Array(9).fill(null).map(() => Array(9).fill(0));
         this.fillBoard(this.solution);
 
         this.initialBoard = this.solution.map(row => [...row]);
-        
-        const removeCount = { easy: 35, medium: 45, hard: 52, expert: 58 }[difficulty] || 45;
+
+        const removeCount = {easy: 35, medium: 45, hard: 52, expert: 58}[difficulty] || 45;
 
         let removed = 0;
         while (removed < removeCount) {
@@ -785,7 +842,7 @@
 
       handleCellInput(num) {
         if (!this.selectedCell || this.isVictory || this.isPaused) return;
-        const { row, col } = this.selectedCell;
+        const {row, col} = this.selectedCell;
 
         if (this.initialBoard[row][col] !== 0) {
           this.showToast("Cannot modify fixed numbers");
@@ -818,7 +875,7 @@
         const newVal = this.currentBoard[row][col];
 
         if (prevVal !== newVal || [...prevNotes].join(',') !== [...newNotes].join(',')) {
-          this.undoStack.push({ row, col, prevVal, newVal, prevNotes, newNotes });
+          this.undoStack.push({row, col, prevVal, newVal, prevNotes, newNotes});
           this.updateUndoButton();
         }
 
@@ -847,12 +904,12 @@
         if (this.undoStack.length === 0 || this.isVictory || this.isPaused) return;
 
         const action = this.undoStack.pop();
-        const { row, col, prevVal, prevNotes } = action;
+        const {row, col, prevVal, prevNotes} = action;
 
         this.currentBoard[row][col] = prevVal;
         this.notes[row][col] = new Set(prevNotes);
 
-        this.selectedCell = { row, col };
+        this.selectedCell = {row, col};
         this.updateConflicts();
         this.updateUndoButton();
         this.saveGameState();
@@ -881,8 +938,8 @@
             let bgColor = '#0f172a';
 
             if (this.selectedCell) {
-              const { row: selR, col: selC } = this.selectedCell;
-              const sameBox = Math.floor(r/3) === Math.floor(selR/3) && Math.floor(c/3) === Math.floor(selC/3);
+              const {row: selR, col: selC} = this.selectedCell;
+              const sameBox = Math.floor(r / 3) === Math.floor(selR / 3) && Math.floor(c / 3) === Math.floor(selC / 3);
               if (r === selR || c === selC || sameBox) {
                 bgColor = '#1e293b';
               }
@@ -994,13 +1051,13 @@
           const row = Math.floor(y / (rect.height / 9));
 
           if (row >= 0 && row < 9 && col >= 0 && col < 9) {
-            this.selectedCell = { row, col };
+            this.selectedCell = {row, col};
             this.render();
           }
         };
 
         this.canvas.addEventListener('mousedown', handleCanvasPointer);
-        this.canvas.addEventListener('touchstart', handleCanvasPointer, { passive: false });
+        this.canvas.addEventListener('touchstart', handleCanvasPointer, {passive: false});
 
         document.querySelectorAll('.num-btn').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -1011,13 +1068,13 @@
 
         document.getElementById('eraseBtn').addEventListener('click', () => this.handleCellInput(0));
         document.getElementById('undoBtn').addEventListener('click', () => this.undo());
-        
+
         const noteBtn = document.getElementById('noteToggleBtn');
         const noteStatus = document.getElementById('noteStatusText');
         noteBtn.addEventListener('click', () => {
           this.isNoteMode = !this.isNoteMode;
           noteStatus.textContent = this.isNoteMode ? 'ON' : 'OFF';
-          
+
           if (this.isNoteMode) {
             noteBtn.classList.add('active-note');
             noteStatus.className = 'badge-note active';
@@ -1042,12 +1099,12 @@
             e.preventDefault();
             this.undo();
           } else if (this.selectedCell) {
-            let { row, col } = this.selectedCell;
+            let {row, col} = this.selectedCell;
             if (e.key === 'ArrowUp') row = Math.max(0, row - 1);
             if (e.key === 'ArrowDown') row = Math.min(8, row + 1);
             if (e.key === 'ArrowLeft') col = Math.max(0, col - 1);
             if (e.key === 'ArrowRight') col = Math.min(8, col + 1);
-            this.selectedCell = { row, col };
+            this.selectedCell = {row, col};
             this.render();
           }
         });
@@ -1128,7 +1185,7 @@
     installAppBtn.addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        const {outcome} = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
           installAppBtn.classList.add('hidden');
         }
@@ -1141,4 +1198,5 @@
     });
   </script>
 </body>
+
 </html>
