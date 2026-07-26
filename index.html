@@ -198,6 +198,21 @@
       background: var(--primary-hover);
     }
 
+    .btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-input-hover);
+    }
+
     .btn-icon {
       padding: 8px;
       background: var(--bg-input);
@@ -399,7 +414,7 @@
       <div class="brand-icon">9</div>
       <div>
         <h1 class="brand-title">Sudoku Canvas</h1>
-        <p class="brand-sub" id="status">Checking connection status...</p>
+        <p class="brand-sub">Offline PWA & Local Storage <span id="status">Checking connection status...</span></p>
       </div>
     </div>
 
@@ -435,6 +450,11 @@
         <button id="newGameBtn" class="btn-primary">
           <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           New Game
+        </button>
+
+        <button id="resetBtn" class="btn-secondary" title="Reset puzzle to initial state">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v-3a8 8 0 0114.9-3M20 12v3a8 8 0 01-14.9 3"/></svg>
+          Reset
         </button>
       </div>
 
@@ -808,6 +828,21 @@
         this.render();
       }
 
+      resetBoard() {
+        if (this.isVictory || this.isPaused) return;
+
+        this.currentBoard = this.initialBoard.map(row => [...row]);
+        this.notes = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
+        this.undoStack = [];
+        this.selectedCell = null;
+
+        this.updateConflicts();
+        this.updateUndoButton();
+        this.saveGameState();
+        this.render();
+        this.showToast("Puzzle reset to initial state");
+      }
+
       undo() {
         if (this.undoStack.length === 0 || this.isVictory || this.isPaused) return;
 
@@ -1020,6 +1055,10 @@
         document.getElementById('newGameBtn').addEventListener('click', () => {
           const diff = document.getElementById('difficultySelect').value;
           this.startNewGame(diff);
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+          this.resetBoard();
         });
 
         document.getElementById('victoryNewGameBtn').addEventListener('click', () => {
