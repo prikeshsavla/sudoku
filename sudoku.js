@@ -28,7 +28,9 @@ class SudokuCanvasGame {
     window.addEventListener('resize', () => this.resizeCanvas());
     this.setupEventListeners();
 
-    if (!this.loadGameState()) {
+    if (this.checkHashAndLoad()) {
+      // Loaded from hash seed
+    } else if (!this.loadGameState()) {
       this.startNewGame('medium');
     } else {
       this.startTimer();
@@ -36,6 +38,69 @@ class SudokuCanvasGame {
       this.render();
       this.showToast('Restored previous game state');
     }
+  }
+
+  vibrate(pattern) {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate(pattern);
+      } catch (e) {
+        console.warn('Vibration failed:', e);
+      }
+    }
+  }
+
+  boardToString(board) {
+    return board.flat().join('');
+  }
+
+  stringToBoard(str) {
+    const board = [];
+    for (let r = 0; r < 9; r++) {
+      const row = [];
+      for (let c = 0; c < 9; c++) {
+        row.push(parseInt(str[r * 9 + c]));
+      }
+      board.push(row);
+    }
+    return board;
+  }
+
+  loadBoardFromString(boardStr, isImported = false) {
+    this.isVictory = false;
+    const victoryOverlay = document.getElementById('victoryOverlay');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    if (victoryOverlay) victoryOverlay.classList.add('hidden');
+    if (pauseOverlay) pauseOverlay.classList.add('hidden');
+
+    this.initialBoard = this.stringToBoard(boardStr);
+    this.currentBoard = this.initialBoard.map(row => [...row]);
+    this.solution = Array(9).fill(null).map(() => Array(9).fill(0));
+    this.notes = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
+    this.undoStack = [];
+    this.selectedCell = null;
+    this.secondsElapsed = 0;
+
+    this.updateConflicts();
+    this.updateUndoButton();
+    this.startTimer();
+    this.saveGameState();
+    this.render();
+    this.showToast(isImported ? 'Imported seed board successfully' : 'Loaded board from shared link');
+  }
+
+  checkHashAndLoad() {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#board=')) {
+      const boardStr = hash.replace('#board=', '');
+      if (boardStr.length === 81 && /^[0-9]+$/.test(boardStr)) {
+        this.loadBoardFromString(boardStr);
+        return true;
+      } else {
+        this.showToast('Invalid board link');
+      }
+    }
+    return false;
   }
 
   saveGameState() {
@@ -249,6 +314,13 @@ class SudokuCanvasGame {
     }
 
     this.updateConflicts();
+
+    if (num !== 0 && this.conflicts[row][col]) {
+      this.vibrate([40, 30, 40]);
+    } else {
+      this.vibrate(20);
+    }
+
     this.checkWinCondition();
     this.saveGameState();
     this.render();
@@ -401,6 +473,8 @@ class SudokuCanvasGame {
     this.stopTimer();
     this.clearGameState();
 
+    this.vibrate([100, 50, 100, 50, 200, 50, 200, 50, 400]);
+
     document.getElementById('victoryTime').textContent = `Your time: ${this.formatTime(this.secondsElapsed)}`;
     document.getElementById('victoryOverlay').classList.remove('hidden');
     return true;
@@ -421,6 +495,7 @@ class SudokuCanvasGame {
 
       if (row >= 0 && row < 9 && col >= 0 && col < 9) {
         this.selectedCell = {row, col};
+        this.vibrate(8);
         this.render();
       }
     };
@@ -469,12 +544,18 @@ class SudokuCanvasGame {
         this.undo();
       } else if (this.selectedCell) {
         let {row, col} = this.selectedCell;
+        const prevRow = row;
+        const prevCol = col;
         if (e.key === 'ArrowUp') row = Math.max(0, row - 1);
         if (e.key === 'ArrowDown') row = Math.min(8, row + 1);
         if (e.key === 'ArrowLeft') col = Math.max(0, col - 1);
         if (e.key === 'ArrowRight') col = Math.min(8, col + 1);
-        this.selectedCell = {row, col};
-        this.render();
+        
+        if (row !== prevRow || col !== prevCol) {
+          this.selectedCell = {row, col};
+          this.vibrate(8);
+          this.render();
+        }
       }
     });
 

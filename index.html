@@ -56,33 +56,53 @@
   <!-- Main Game Section -->
   <main>
     <div class="toolbar">
-      <div class="toolbar-left">
-        <select id="difficultySelect">
-          <option value="easy">Easy</option>
-          <option value="medium" selected>Medium</option>
-          <option value="hard">Hard</option>
-          <option value="expert">Expert</option>
-        </select>
+      <div class="toolbar-row">
+        <div class="toolbar-left">
+          <select id="difficultySelect">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+            <option value="expert">Expert</option>
+          </select>
 
-        <button id="newGameBtn" class="btn-primary">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          New Game
-        </button>
+          <button id="newGameBtn" class="btn-primary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            New Game
+          </button>
 
-        <button id="resetBtn" class="btn-secondary" title="Reset puzzle to initial state">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 12v-3a8 8 0 0114.9-3M20 12v3a8 8 0 01-14.9 3" />
-          </svg>
-          Reset
-        </button>
+          <button id="resetBtn" class="btn-secondary" title="Reset puzzle to initial state">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 12v-3a8 8 0 0114.9-3M20 12v3a8 8 0 01-14.9 3" />
+            </svg>
+            Reset
+          </button>
+        </div>
+
+        <div class="toolbar-hint">
+          Tap cell to select
+        </div>
       </div>
 
-      <div class="toolbar-hint">
-        Tap cell to select
+      <div class="toolbar-row seed-sharing-row">
+        <button id="shareBtn" class="btn-secondary" title="Share current board link">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8.684 10.742l4.636-2.318m0 0a3 3 0 102.632-3.72l-4.636 2.318m4.636 2.318a3 3 0 102.632 3.72l-4.636-2.318" />
+          </svg>
+          Share Board
+        </button>
+
+        <button id="importBtn" class="btn-secondary" title="Import 81-digit board string">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          Import Board
+        </button>
       </div>
     </div>
 

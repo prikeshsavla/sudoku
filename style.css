@@ -122,10 +122,21 @@ main {
 .toolbar {
   width: 100%;
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 2px;
+}
+
+.toolbar-row {
+  width: 100%;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 0 2px;
+}
+
+.seed-sharing-row {
+  justify-content: flex-start;
 }
 
 .toolbar-left {

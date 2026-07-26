@@ -63,7 +63,51 @@ if (installAppBtn) {
   });
 }
 
-// Game Initialization
+// Game Initialization and Toolbar Listeners
 window.addEventListener('load', () => {
   window.sudokuGame = new SudokuCanvasGame();
+
+  const shareBtn = document.getElementById('shareBtn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      if (window.sudokuGame) {
+        const boardStr = window.sudokuGame.boardToString(window.sudokuGame.initialBoard);
+        const shareUrl = `${window.location.origin}${window.location.pathname}#board=${boardStr}`;
+        
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          window.sudokuGame.showToast('Share link copied to clipboard!');
+        }).catch((err) => {
+          console.error('Copy failed:', err);
+          window.sudokuGame.showToast('Please copy the URL manually');
+        });
+      }
+    });
+  }
+
+  const importBtn = document.getElementById('importBtn');
+  if (importBtn) {
+    importBtn.addEventListener('click', () => {
+      if (window.sudokuGame) {
+        const boardStr = prompt('Paste an 81-digit Sudoku board string (use 0 for empty cells):');
+        if (boardStr === null) return; // User cancelled
+        const cleanedStr = boardStr.trim();
+        if (cleanedStr.length === 81 && /^[0-9]+$/.test(cleanedStr)) {
+          if (window.location.hash === '#board=' + cleanedStr) {
+            window.sudokuGame.loadBoardFromString(cleanedStr, true);
+          } else {
+            window.location.hash = 'board=' + cleanedStr;
+          }
+        } else {
+          window.sudokuGame.showToast('Invalid board: must be exactly 81 digits');
+        }
+      }
+    });
+  }
+});
+
+// Listen for hash changes to load shared boards dynamically
+window.addEventListener('hashchange', () => {
+  if (window.sudokuGame) {
+    window.sudokuGame.checkHashAndLoad();
+  }
 });
