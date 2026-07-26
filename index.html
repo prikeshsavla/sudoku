@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,149 +9,498 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Sudoku Canvas" />
   <title>Canvas Sudoku</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.85);
+      --bg-input: #1e293b;
+      --bg-input-hover: #334155;
+      --border-color: #334155;
+      --border-highlight: #475569;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #818cf8;
+      --emerald: #059669;
+      --emerald-hover: #047857;
+      --rose: #e11d48;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       touch-action: manipulation;
+      overflow-x: hidden;
     }
-    canvas {
-      touch-action: none;
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      user-select: none;
       -webkit-user-select: none;
-      user-select: none;
     }
+
+    header {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      margin-bottom: 6px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .timer-block {
+      text-align: right;
+    }
+
+    .timer-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .timer-val {
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    main {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin: auto 0;
+    }
+
+    .toolbar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 2px;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    @media (max-width: 480px) {
+      .toolbar-hint {
+        display: none;
+      }
+    }
+
+    select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 8px;
+      padding: 6px 10px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--primary-light);
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      transition: all 0.15s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-icon {
+      padding: 8px;
+      background: var(--bg-input);
+      color: #cbd5e1;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+    .btn-icon:hover {
+      background: var(--bg-input-hover);
+      color: #ffffff;
+    }
+
+    .btn-install {
+      background: var(--emerald);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 9px;
+      border-radius: 8px;
+      gap: 5px;
+      animation: pulse 2s infinite;
+    }
+    .btn-install:hover {
+      background: var(--emerald-hover);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; }
+    }
+
+    .canvas-container {
+      width: 100%;
+      position: relative;
+      aspect-ratio: 1 / 1;
+      background: #020617;
+      border-radius: 16px;
+      border: 2px solid var(--border-color);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .controls-group {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .action-btn {
+      height: 44px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 12px;
+      gap: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .action-btn:hover:not(:disabled) {
+      background: var(--bg-input-hover);
+    }
+    .action-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .action-btn.active-note {
+      background: var(--primary);
+      border-color: var(--primary-light);
+      color: #ffffff;
+    }
+
+    .badge-note {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: var(--border-color);
+      color: var(--text-muted);
+    }
+    .badge-note.active {
+      background: rgba(255,255,255,0.25);
+      color: #ffffff;
+    }
+
+    .numpad-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 6px;
+    }
+
     .num-btn {
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
+      height: 48px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .num-btn:hover {
+      background: var(--bg-input-hover);
+    }
+    .num-btn:active {
+      background: var(--primary);
+      transform: scale(0.95);
+    }
+
+    @media (min-width: 640px) {
+      .num-btn {
+        height: 54px;
+        font-size: 20px;
+      }
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.92);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 20;
+    }
+
+    .victory-badge {
+      width: 60px;
+      height: 60px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #10b981;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 30;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    svg {
+      flex-shrink: 0;
     }
   </style>
 </head>
-<body class="h-full flex flex-col items-center justify-between p-2 sm:p-4 select-none overflow-x-hidden">
+<body>
 
-  <header class="w-full max-w-xl flex items-center justify-between py-2 px-3 bg-slate-800/80 backdrop-blur rounded-xl border border-slate-700 shadow-md mb-2">
-    <div class="flex items-center gap-2">
-      <div class="p-2 bg-indigo-600 rounded-lg text-white font-bold text-xl leading-none">
-        <i class="fa-solid font-mono">9</i>
-      </div>
+  <!-- Header section -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">9</div>
       <div>
-        <h1 class="text-lg font-bold text-white leading-tight">Sudoku Canvas</h1>
-        <p class="text-xs text-slate-400">Offline PWA & Local Storage</p>
+        <h1 class="brand-title">Sudoku Canvas</h1>
+        <p class="brand-sub">Offline PWA & Local Storage</p>
       </div>
     </div>
 
-    <!-- Timer and Controls -->
-    <div class="flex items-center gap-3">
-      <button id="installAppBtn" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow animate-pulse" title="Install App">
-        <i class="fa-solid fa-download"></i>
-        <span class="hidden sm:inline">Install</span>
+    <div class="header-right">
+      <button id="installAppBtn" class="btn-install hidden" title="Install App">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span>Install</span>
       </button>
 
-      <div class="text-right">
-        <div class="text-xs text-slate-400 font-medium">TIME</div>
-        <div id="timerDisplay" class="font-mono text-sm font-semibold text-indigo-400">00:00</div>
+      <div class="timer-block">
+        <div class="timer-label">TIME</div>
+        <div id="timerDisplay" class="timer-val">00:00</div>
       </div>
-      <button id="pauseBtn" class="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors">
-        <i class="fa-solid fa-pause"></i>
+
+      <button id="pauseBtn" class="btn-icon" title="Pause Game">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
       </button>
     </div>
   </header>
 
-  <main class="w-full max-w-xl flex flex-col items-center gap-3 my-auto">
-    
-    <!-- Top toolbar for game management controls -->
-    <div class="w-full flex items-center justify-between gap-2 px-1">
-      <div class="flex items-center gap-2">
-        <select id="difficultySelect" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs sm:text-sm rounded-lg px-3 py-1.5 font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+  <!-- Main Game Section -->
+  <main>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <select id="difficultySelect">
           <option value="easy">Easy</option>
           <option value="medium" selected>Medium</option>
           <option value="hard">Hard</option>
           <option value="expert">Expert</option>
         </select>
 
-        <button id="newGameBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-rotate-right"></i> New Game
+        <button id="newGameBtn" class="btn-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          New Game
         </button>
       </div>
 
-      <div class="text-xs text-slate-400 font-medium hidden sm:block">
-        Tap a cell to select
+      <div class="toolbar-hint">
+        Tap cell to select
       </div>
     </div>
 
-    <!-- Canvas container with fixed aspect ratio square -->
-    <div id="canvasContainer" class="w-full relative aspect-square bg-slate-950 rounded-2xl border-2 border-slate-700 shadow-2xl p-1 flex items-center justify-center overflow-hidden">
-      <canvas id="sudokuCanvas" class="w-full h-full rounded-xl cursor-pointer"></canvas>
+    <!-- Canvas Container -->
+    <div id="canvasContainer" class="canvas-container">
+      <canvas id="sudokuCanvas"></canvas>
       
-      <!-- Pause overlay -->
-      <div id="pauseOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur flex flex-col items-center justify-center gap-3 hidden z-20">
-        <i class="fa-solid fa-circle-pause text-5xl text-indigo-400"></i>
-        <p class="text-lg font-bold text-white">Game Paused</p>
-        <button id="resumeBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2 rounded-xl transition shadow">
-          Resume
-        </button>
+      <!-- Pause Overlay -->
+      <div id="pauseOverlay" class="overlay hidden">
+        <svg width="48" height="48" fill="#818cf8" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <p style="font-size: 18px; font-weight: 700; color: #fff;">Game Paused</p>
+        <button id="resumeBtn" class="btn-primary" style="padding: 8px 20px;">Resume</button>
       </div>
 
-      <!-- Victory overlay -->
-      <div id="victoryOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur flex flex-col items-center justify-center gap-4 hidden z-20 transition-all">
-        <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mb-1 border border-emerald-500/40">
-          <i class="fa-solid fa-trophy"></i>
+      <!-- Victory Overlay -->
+      <div id="victoryOverlay" class="overlay hidden">
+        <div class="victory-badge">
+          <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l1.954.682a2 2 0 011.233 2.502l-.68 2.04 1.706 1.138a2 2 0 01.787 2.68l-1 1.732a2 2 0 01-2.417.848L11 15.323V17a1 1 0 01-2 0v-1.677l-1.583.625a2 2 0 01-2.417-.848l-1-1.732a2 2 0 01.787-2.68l1.706-1.138-.68-2.04a2 2 0 011.233-2.502L8 4.323V3a1 1 0 011-1z" clip-rule="evenodd"/></svg>
         </div>
-        <h2 class="text-2xl font-bold text-white">Puzzle Solved!</h2>
-        <p id="victoryTime" class="text-sm text-slate-300">Your time: 00:00</p>
-        <button id="victoryNewGameBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-2.5 rounded-xl transition shadow-lg mt-2">
-          Play Again
-        </button>
+        <h2 style="font-size: 22px; font-weight: 700; color: #fff;">Puzzle Solved!</h2>
+        <p id="victoryTime" style="font-size: 14px; color: var(--text-muted);">Your time: 00:00</p>
+        <button id="victoryNewGameBtn" class="btn-primary" style="background: var(--emerald); padding: 10px 24px; margin-top: 6px;">Play Again</button>
       </div>
     </div>
 
-    <!-- Interactive Keypad & Mobile Thumb Controls -->
-    <div class="w-full flex flex-col gap-2 mt-1">
-      
-      <!-- Mobile Thumb-Zone Actions Bar (Undo, Pencil Notes, Erase) -->
-      <div class="grid grid-cols-3 gap-1.5">
-        <button id="undoBtn" class="h-11 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 border border-slate-700/80 text-xs font-medium rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1 shadow disabled:opacity-40 disabled:cursor-not-allowed" title="Undo Move (Ctrl+Z)">
-          <i class="fa-solid fa-arrow-rotate-left text-indigo-400"></i>
-          <span class="text-[10px] sm:text-xs">Undo</span>
+    <!-- Mobile Action Controls & Keypad -->
+    <div class="controls-group">
+      <div class="action-grid">
+        <button id="undoBtn" class="action-btn" title="Undo Move (Ctrl+Z)">
+          <svg width="14" height="14" fill="none" stroke="#818cf8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          <span>Undo</span>
         </button>
 
-        <button id="noteToggleBtn" class="h-11 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-slate-200 border border-slate-700/80 text-xs font-medium rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1 shadow" title="Toggle Note Mode (N)">
-          <i class="fa-solid fa-pencil text-amber-400"></i>
-          <div class="flex items-center gap-1">
-            <span class="text-[10px] sm:text-xs">Note</span>
-            <span id="noteStatusText" class="bg-slate-700 text-slate-400 px-1 py-0.2 rounded text-[9px] font-bold">OFF</span>
-          </div>
+        <button id="noteToggleBtn" class="action-btn" title="Toggle Note Mode (N)">
+          <svg width="14" height="14" fill="none" stroke="#fbbf24" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          <span>Note</span>
+          <span id="noteStatusText" class="badge-note">OFF</span>
         </button>
 
-        <button id="eraseBtn" class="h-11 bg-slate-800 hover:bg-slate-700 active:bg-rose-900/40 text-rose-400 border border-slate-700/80 text-xs font-medium rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1 shadow" title="Erase Cell">
-          <i class="fa-solid fa-eraser"></i>
-          <span class="text-[10px] sm:text-xs">Erase</span>
+        <button id="eraseBtn" class="action-btn" style="color: #f87171;" title="Erase Cell">
+          <svg width="14" height="14" fill="none" stroke="#f87171" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Erase</span>
         </button>
       </div>
 
-      <!-- 1-9 Numpad Buttons -->
-      <div class="grid grid-cols-9 gap-1.5 mt-0.5">
-        <button data-key="1" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">1</button>
-        <button data-key="2" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">2</button>
-        <button data-key="3" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">3</button>
-        <button data-key="4" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">4</button>
-        <button data-key="5" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">5</button>
-        <button data-key="6" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">6</button>
-        <button data-key="7" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">7</button>
-        <button data-key="8" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">8</button>
-        <button data-key="9" class="num-btn h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 text-white font-bold text-lg sm:text-xl rounded-xl border border-slate-700/80 transition-all shadow active:scale-95 flex items-center justify-center">9</button>
+      <div class="numpad-grid">
+        <button data-key="1" class="num-btn">1</button>
+        <button data-key="2" class="num-btn">2</button>
+        <button data-key="3" class="num-btn">3</button>
+        <button data-key="4" class="num-btn">4</button>
+        <button data-key="5" class="num-btn">5</button>
+        <button data-key="6" class="num-btn">6</button>
+        <button data-key="7" class="num-btn">7</button>
+        <button data-key="8" class="num-btn">8</button>
+        <button data-key="9" class="num-btn">9</button>
       </div>
     </div>
   </main>
 
-  <!-- Notification Toast -->
-  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-100 border border-slate-700 px-4 py-2 rounded-xl text-sm shadow-xl opacity-0 transition-opacity duration-300 pointer-events-none z-30">
-    Notification
-  </div>
+  <div id="toast" class="toast">Notification</div>
 
   <script>
-    // Generate and register web application manifest dynamically
     const manifestBlob = new Blob([JSON.stringify({
       name: "Sudoku Canvas Game",
       short_name: "Sudoku",
@@ -160,16 +509,8 @@
       background_color: "#0f172a",
       theme_color: "#0f172a",
       icons: [
-        {
-          src: "https://placehold.co/192x192/0f172a/6366f1?text=Sudoku",
-          sizes: "192x192",
-          type: "image/png"
-        },
-        {
-          src: "https://placehold.co/512x512/0f172a/6366f1?text=Sudoku",
-          sizes: "512x512",
-          type: "image/png"
-        }
+        { src: "https://placehold.co/192x192/0f172a/6366f1?text=Sudoku", sizes: "192x192", type: "image/png" },
+        { src: "https://placehold.co/512x512/0f172a/6366f1?text=Sudoku", sizes: "512x512", type: "image/png" }
       ]
     })], { type: 'application/json' });
     const manifestUrl = URL.createObjectURL(manifestBlob);
@@ -178,15 +519,30 @@
     manifestLink.href = manifestUrl;
     document.head.appendChild(manifestLink);
 
-    // Register offline Service Worker using Blob
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'sudoku-v1';
-        self.addEventListener('install', (e) => e.waitUntil(self.skipWaiting()));
-        self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+        const CACHE_NAME = 'sudoku-pwa-offline-v3';
+        self.addEventListener('install', (e) => self.skipWaiting());
+        self.addEventListener('activate', (e) => {
+          e.waitUntil(
+            caches.keys().then((keys) =>
+              Promise.all(keys.map((k) => k !== CACHE_NAME && caches.delete(k)))
+            ).then(() => self.clients.claim())
+          );
+        });
         self.addEventListener('fetch', (e) => {
+          if (e.request.method !== 'GET') return;
           e.respondWith(
-            caches.match(e.request).then((res) => res || fetch(e.request).catch(() => caches.match('./')))
+            caches.match(e.request).then((cached) => {
+              if (cached) return cached;
+              return fetch(e.request).then((response) => {
+                if (response && (response.status === 200 || response.type === 'opaque')) {
+                  const copy = response.clone();
+                  caches.open(CACHE_NAME).then((cache) => cache.put(e.request, copy));
+                }
+                return response;
+              }).catch(() => caches.match('./') || caches.match(e.request));
+            })
           );
         });
       `;
@@ -200,24 +556,20 @@
         this.ctx = this.canvas.getContext('2d');
         this.gridSize = 9;
         
-        // Game State
         this.initialBoard = Array(9).fill(null).map(() => Array(9).fill(0));
         this.currentBoard = Array(9).fill(null).map(() => Array(9).fill(0));
         this.solution = Array(9).fill(null).map(() => Array(9).fill(0));
         this.notes = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
         this.conflicts = Array(9).fill(null).map(() => Array(9).fill(false));
         
-        this.selectedCell = null; // { row, col }
+        this.selectedCell = null;
         this.isNoteMode = false;
         this.undoStack = [];
         this.isPaused = false;
         this.isVictory = false;
 
-        // Timer
         this.secondsElapsed = 0;
         this.timerInterval = null;
-
-        // Storage Key
         this.STORAGE_KEY = 'sudoku_canvas_state_v1';
 
         this.init();
@@ -226,10 +578,8 @@
       init() {
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
-
         this.setupEventListeners();
 
-        // Try restoring state from localStorage, else start new game
         if (!this.loadGameState()) {
           this.startNewGame('medium');
         } else {
@@ -324,19 +674,12 @@
         document.getElementById('victoryOverlay').classList.add('hidden');
         document.getElementById('pauseOverlay').classList.add('hidden');
         
-        // Generate solved board
         this.solution = Array(9).fill(null).map(() => Array(9).fill(0));
         this.fillBoard(this.solution);
 
-        // Copy solution to initial and remove numbers based on difficulty
         this.initialBoard = this.solution.map(row => [...row]);
         
-        const removeCount = {
-          easy: 35,
-          medium: 45,
-          hard: 52,
-          expert: 58
-        }[difficulty] || 45;
+        const removeCount = { easy: 35, medium: 45, hard: 52, expert: 58 }[difficulty] || 45;
 
         let removed = 0;
         while (removed < removeCount) {
@@ -375,7 +718,6 @@
         const empty = findEmpty();
         if (!empty) return true;
         const [r, c] = empty;
-
         const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
 
         for (const num of nums) {
@@ -423,7 +765,6 @@
         if (!this.selectedCell || this.isVictory || this.isPaused) return;
         const { row, col } = this.selectedCell;
 
-        // Cannot modify initial given numbers
         if (this.initialBoard[row][col] !== 0) {
           this.showToast("Cannot modify fixed numbers");
           return;
@@ -434,41 +775,28 @@
 
         if (this.isNoteMode) {
           if (num === 0) {
-            // Erase notes when in Note Mode
             this.notes[row][col].clear();
           } else {
-            // Toggle note candidate
             if (this.notes[row][col].has(num)) {
               this.notes[row][col].delete(num);
             } else {
               this.notes[row][col].add(num);
             }
           }
-          this.currentBoard[row][col] = 0; // Note entry clears main number so notes are visible
+          this.currentBoard[row][col] = 0;
         } else {
-          // Normal mode: enter number or erase
-          if (num === 0) {
-            // Erase main number only; preserve underlying pencil notes intact
-            this.currentBoard[row][col] = 0;
-          } else if (prevVal === num) {
-            // Toggling off the main number reveals underlying pencil notes
+          if (num === 0 || prevVal === num) {
             this.currentBoard[row][col] = 0;
           } else {
             this.currentBoard[row][col] = num;
-            // Notes are preserved in state and hidden while main entry exists
           }
         }
 
-        // Record for Undo history
         const newNotes = new Set(this.notes[row][col]);
         const newVal = this.currentBoard[row][col];
 
         if (prevVal !== newVal || [...prevNotes].join(',') !== [...newNotes].join(',')) {
-          this.undoStack.push({
-            row, col,
-            prevVal, newVal,
-            prevNotes, newNotes
-          });
+          this.undoStack.push({ row, col, prevVal, newVal, prevNotes, newNotes });
           this.updateUndoButton();
         }
 
@@ -496,8 +824,7 @@
       }
 
       updateUndoButton() {
-        const undoBtn = document.getElementById('undoBtn');
-        undoBtn.disabled = this.undoStack.length === 0;
+        document.getElementById('undoBtn').disabled = this.undoStack.length === 0;
       }
 
       render() {
@@ -507,7 +834,6 @@
 
         this.ctx.clearRect(0, 0, width, height);
 
-        // 1. Draw Cell Highlights
         const selectedVal = this.selectedCell ? this.currentBoard[this.selectedCell.row][this.selectedCell.col] : null;
 
         for (let r = 0; r < 9; r++) {
@@ -515,32 +841,25 @@
             const x = c * cs;
             const y = r * cs;
 
-            let bgColor = '#0f172a'; // Base canvas background
+            let bgColor = '#0f172a';
 
             if (this.selectedCell) {
               const { row: selR, col: selC } = this.selectedCell;
-
-              // Row, Col, Subgrid highlight
               const sameBox = Math.floor(r/3) === Math.floor(selR/3) && Math.floor(c/3) === Math.floor(selC/3);
               if (r === selR || c === selC || sameBox) {
-                bgColor = '#1e293b'; // Slate 800
+                bgColor = '#1e293b';
               }
-
-              // Same number highlight
               const val = this.currentBoard[r][c];
               if (selectedVal !== 0 && val === selectedVal) {
-                bgColor = '#312e81'; // Indigo 900
+                bgColor = '#312e81';
               }
-
-              // Selected Cell active focus
               if (r === selR && c === selC) {
-                bgColor = '#3730a3'; // Indigo 800
+                bgColor = '#3730a3';
               }
             }
 
-            // Conflict Error Highlight (Red background)
             if (this.conflicts[r][c]) {
-              bgColor = '#7f1d1d'; // Rose 900
+              bgColor = '#7f1d1d';
             }
 
             this.ctx.fillStyle = bgColor;
@@ -548,23 +867,21 @@
           }
         }
 
-        // 2. Draw Grid Lines
+        // Draw Grid Lines
         for (let i = 0; i <= 9; i++) {
           this.ctx.beginPath();
           this.ctx.lineWidth = (i % 3 === 0) ? 3 : 1;
           this.ctx.strokeStyle = (i % 3 === 0) ? '#475569' : '#334155';
 
-          // Vertical
           this.ctx.moveTo(i * cs, 0);
           this.ctx.lineTo(i * cs, height);
 
-          // Horizontal
           this.ctx.moveTo(0, i * cs);
           this.ctx.lineTo(width, i * cs);
           this.ctx.stroke();
         }
 
-        // 3. Draw Cell Content (Numbers & Pencil Notes)
+        // Draw Numbers and Notes
         for (let r = 0; r < 9; r++) {
           for (let c = 0; c < 9; c++) {
             const x = c * cs;
@@ -573,26 +890,24 @@
             const isInitial = this.initialBoard[r][c] !== 0;
 
             if (val !== 0) {
-              // Draw Main Number
               this.ctx.font = `${isInitial ? '700' : '600'} ${cs * 0.5}px Inter, sans-serif`;
               this.ctx.textAlign = 'center';
               this.ctx.textBaseline = 'middle';
 
               if (this.conflicts[r][c]) {
-                this.ctx.fillStyle = '#fca5a5'; // Light Red for error text
+                this.ctx.fillStyle = '#fca5a5';
               } else if (isInitial) {
-                this.ctx.fillStyle = '#f8fafc'; // Crisp White
+                this.ctx.fillStyle = '#f8fafc';
               } else {
-                this.ctx.fillStyle = '#818cf8'; // Indigo 400
+                this.ctx.fillStyle = '#818cf8';
               }
 
               this.ctx.fillText(val, x + cs / 2, y + cs / 2 + 2);
             } else {
-              // Draw 3x3 Pencil Notes
               const cellNotes = this.notes[r][c];
               if (cellNotes && cellNotes.size > 0) {
                 this.ctx.font = `500 ${cs * 0.22}px Inter, sans-serif`;
-                this.ctx.fillStyle = '#94a3b8'; // Slate 400
+                this.ctx.fillStyle = '#94a3b8';
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
 
@@ -615,13 +930,10 @@
       checkWinCondition() {
         for (let r = 0; r < 9; r++) {
           for (let c = 0; c < 9; c++) {
-            if (this.currentBoard[r][c] === 0 || this.conflicts[r][c]) {
-              return false;
-            }
+            if (this.currentBoard[r][c] === 0 || this.conflicts[r][c]) return false;
           }
         }
 
-        // Solved successfully!
         this.isVictory = true;
         this.stopTimer();
         this.clearGameState();
@@ -632,7 +944,6 @@
       }
 
       setupEventListeners() {
-        // Canvas Click/Touch selection
         const handleCanvasPointer = (e) => {
           e.preventDefault();
           const rect = this.canvas.getBoundingClientRect();
@@ -654,7 +965,6 @@
         this.canvas.addEventListener('mousedown', handleCanvasPointer);
         this.canvas.addEventListener('touchstart', handleCanvasPointer, { passive: false });
 
-        // Numpad Buttons
         document.querySelectorAll('.num-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const key = parseInt(btn.getAttribute('data-key'));
@@ -662,11 +972,9 @@
           });
         });
 
-        // Action Buttons
         document.getElementById('eraseBtn').addEventListener('click', () => this.handleCellInput(0));
         document.getElementById('undoBtn').addEventListener('click', () => this.undo());
         
-        // Note Toggle Button with dynamic active style feedback
         const noteBtn = document.getElementById('noteToggleBtn');
         const noteStatus = document.getElementById('noteStatusText');
         noteBtn.addEventListener('click', () => {
@@ -674,19 +982,16 @@
           noteStatus.textContent = this.isNoteMode ? 'ON' : 'OFF';
           
           if (this.isNoteMode) {
-            noteBtn.classList.remove('bg-slate-800', 'border-slate-700/80', 'text-slate-200');
-            noteBtn.classList.add('bg-indigo-600', 'border-indigo-400', 'text-white');
-            noteStatus.className = 'bg-white/20 text-white px-1 py-0.2 rounded text-[9px] font-bold';
+            noteBtn.classList.add('active-note');
+            noteStatus.className = 'badge-note active';
           } else {
-            noteBtn.classList.remove('bg-indigo-600', 'border-indigo-400', 'text-white');
-            noteBtn.classList.add('bg-slate-800', 'border-slate-700/80', 'text-slate-200');
-            noteStatus.className = 'bg-slate-700 text-slate-400 px-1 py-0.2 rounded text-[9px] font-bold';
+            noteBtn.classList.remove('active-note');
+            noteStatus.className = 'badge-note';
           }
 
           this.showToast(this.isNoteMode ? 'Pencil Note Mode ON' : 'Normal Entry Mode ON');
         });
 
-        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
           if (this.isPaused || this.isVictory) return;
 
@@ -710,7 +1015,6 @@
           }
         });
 
-        // Game Controls
         document.getElementById('newGameBtn').addEventListener('click', () => {
           const diff = document.getElementById('difficultySelect').value;
           this.startNewGame(diff);
@@ -721,7 +1025,6 @@
           this.startNewGame(diff);
         });
 
-        // Pause / Resume
         const pauseOverlay = document.getElementById('pauseOverlay');
         document.getElementById('pauseBtn').addEventListener('click', () => {
           this.isPaused = true;
@@ -742,8 +1045,6 @@
           if (!this.isPaused && !this.isVictory) {
             this.secondsElapsed++;
             document.getElementById('timerDisplay').textContent = this.formatTime(this.secondsElapsed);
-            
-            // Periodically sync time to localStorage
             if (this.secondsElapsed % 10 === 0) {
               this.saveGameState();
             }
@@ -767,11 +1068,9 @@
       showToast(msg) {
         const toast = document.getElementById('toast');
         toast.textContent = msg;
-        toast.classList.remove('opacity-0');
-        toast.classList.add('opacity-100');
+        toast.classList.add('show');
         setTimeout(() => {
-          toast.classList.remove('opacity-100');
-          toast.classList.add('opacity-0');
+          toast.classList.remove('show');
         }, 2200);
       }
     }
@@ -796,7 +1095,6 @@
       }
     });
 
-    // Initialize Game Instance on Window Load
     window.addEventListener('load', () => {
       window.sudokuGame = new SudokuCanvasGame();
     });
