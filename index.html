@@ -399,7 +399,7 @@
       <div class="brand-icon">9</div>
       <div>
         <h1 class="brand-title">Sudoku Canvas</h1>
-        <p class="brand-sub">Offline PWA & Local Storage</p>
+        <p class="brand-sub" id="status">Checking connection status...</p>
       </div>
     </div>
 
@@ -419,6 +419,7 @@
       </button>
     </div>
   </header>
+
 
   <!-- Main Game Section -->
   <main>
@@ -499,7 +500,8 @@
   </main>
 
   <div id="toast" class="toast">Notification</div>
-
+  <!-- Register the Service Worker -->
+  <script src="./app.js"></script>
   <script>
     const manifestBlob = new Blob([JSON.stringify({
       name: "Sudoku Canvas Game",
