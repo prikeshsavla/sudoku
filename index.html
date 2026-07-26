@@ -178,7 +178,9 @@
     Keyboard: Arrow keys to move • 1-9 Numbers • Backspace/Del • 'N' Notes • 'U' Undo
   </footer>
 
-  <script>
+  <script type="module">
+    const STORAGE_KEY = 'sudoku_canvas_game_state';
+
     /* Global Sudoku App Controller */
     class SudokuGame {
       constructor() {
@@ -207,6 +209,7 @@
         this.timerInterval = null;
         this.isPaused = false;
         this.isGameOver = false;
+        this.saveTimeout = null;
 
         this.init();
       }
@@ -218,8 +221,87 @@
         // Attach UI listeners
         this.setupEventListeners();
 
-        // Start initial game
-        this.startNewGame('medium');
+        // Load saved game state from localStorage
+        const loaded = this.loadGameState();
+
+        if (!loaded) {
+          // Start initial new game if no saved state exists
+          this.startNewGame('medium');
+        } else {
+          this.startTimer();
+          this.render();
+          this.showToast("Restored your puzzle progress");
+        }
+      }
+
+      loadGameState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (!saved) return false;
+
+          const data = JSON.parse(saved);
+          if (data.solution && data.board && data.initial) {
+            this.solution = data.solution;
+            this.initial = data.initial;
+            this.board = data.board;
+            
+            if (data.notes) {
+              this.notes = data.notes.map(row => row.map(cellArr => new Set(cellArr)));
+            }
+
+            if (data.undoStack) {
+              this.undoStack = data.undoStack.map(act => ({
+                ...act,
+                prevNotes: new Set(act.prevNotes || []),
+                newNotes: new Set(act.newNotes || [])
+              }));
+            }
+
+            this.timer = data.timer || 0;
+            this.isGameOver = data.isGameOver || false;
+            if (data.difficulty) {
+              document.getElementById('difficultySelect').value = data.difficulty;
+            }
+
+            this.updateTimerDisplay();
+            this.updateUndoButton();
+            this.checkConflicts();
+            return true;
+          }
+        } catch (err) {
+          console.warn("Could not restore saved game state from localStorage:", err);
+        }
+        return false;
+      }
+
+      saveGameState() {
+        clearTimeout(this.saveTimeout);
+        this.saveTimeout = setTimeout(() => {
+          try {
+            const serializedNotes = this.notes.map(row => row.map(set => Array.from(set)));
+            const serializedUndo = this.undoStack.map(act => ({
+              ...act,
+              prevNotes: act.prevNotes ? Array.from(act.prevNotes) : [],
+              newNotes: act.newNotes ? Array.from(act.newNotes) : []
+            }));
+
+            const dataToSave = {
+              solution: this.solution,
+              initial: this.initial,
+              board: this.board,
+              notes: serializedNotes,
+              undoStack: serializedUndo,
+              timer: this.timer,
+              difficulty: document.getElementById('difficultySelect').value,
+              isGameOver: this.isGameOver,
+              updatedAt: Date.now()
+            };
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+          } catch (err) {
+            console.warn("Failed to persist game state to localStorage:", err);
+          }
+        }, 300);
       }
 
       setupEventListeners() {
@@ -389,6 +471,7 @@
         this.startTimer();
         document.getElementById('victoryOverlay').classList.add('hidden');
         this.showToast(`New ${difficulty.toUpperCase()} game started`);
+        this.saveGameState();
         this.render();
       }
 
@@ -398,6 +481,10 @@
           if (!this.isPaused && !this.isGameOver) {
             this.timer++;
             this.updateTimerDisplay();
+            // Periodically sync timer
+            if (this.timer % 10 === 0) {
+              this.saveGameState();
+            }
           }
         }, 1000);
       }
@@ -554,6 +641,34 @@
 
         this.checkConflicts();
         this.checkVictory();
+        this.saveGameState();
+        this.render();
+      }
+
+      eraseSelected() {
+        if (!this.selectedCell || this.isPaused || this.isGameOver) return;
+        const { row, col } = this.selectedCell;
+
+        if (this.initial[row][col] !== 0) return;
+
+        const prevValue = this.board[row][col];
+        const prevNotes = new Set(this.notes[row][col]);
+
+        if (prevValue === 0 && prevNotes.size === 0) return;
+
+        this.board[row][col] = 0;
+        this.notes[row][col] = new Set();
+
+        this.recordAction({
+          row, col,
+          prevValue,
+          newValue: 0,
+          prevNotes,
+          newNotes: new Set()
+        });
+
+        this.checkConflicts();
+        this.saveGameState();
         this.render();
       }
 
@@ -600,6 +715,7 @@
         this.selectedCell = { row, col };
         this.updateUndoButton();
         this.checkConflicts();
+        this.saveGameState();
         this.render();
         this.showToast("Action Undone");
       }
@@ -647,6 +763,7 @@
 
         this.checkConflicts();
         this.checkVictory();
+        this.saveGameState();
         this.render();
         this.showToast("Hint applied!");
       }
