@@ -20,6 +20,9 @@ class SudokuCanvasGame {
     this.timerInterval = null;
     this.STORAGE_KEY = 'sudoku_canvas_state_v1';
 
+    // New state: currently highlighted number (for issue #4)
+    this.highlightNumber = null;
+
     this.init();
   }
 
@@ -113,7 +116,13 @@ class SudokuCanvasGame {
         undoStack: this.undoStack.map(action => ({
           ...action,
           prevNotes: Array.from(action.prevNotes || []),
-          newNotes: Array.from(action.newNotes || [])
+          newNotes: Array.from(action.newNotes || []),
+          clearedNotes: (action.clearedNotes || []).map(item => ({
+            row: item.row,
+            col: item.col,
+            prevNotes: Array.from(item.prevNotes || []),
+            newNotes: Array.from(item.newNotes || [])
+          }))
         })),
         secondsElapsed: this.secondsElapsed,
         difficulty: document.getElementById('difficultySelect').value,
@@ -147,7 +156,13 @@ class SudokuCanvasGame {
       this.undoStack = (data.undoStack || []).map(action => ({
         ...action,
         prevNotes: new Set(action.prevNotes || []),
-        newNotes: new Set(action.newNotes || [])
+        newNotes: new Set(action.newNotes || []),
+        clearedNotes: (action.clearedNotes || []).map(item => ({
+          row: item.row,
+          col: item.col,
+          prevNotes: new Set(item.prevNotes || []),
+          newNotes: new Set(item.newNotes || [])
+        }))
       }));
 
       this.updateConflicts();
@@ -274,6 +289,27 @@ class SudokuCanvasGame {
     }
   }
 
+  // Helper: return peer cells (row, col, box) excluding the cell itself
+  getPeers(row, col) {
+    const peers = new Set();
+    for (let i = 0; i < 9; i++) {
+      if (i !== col) peers.add(`${row},${i}`);
+      if (i !== row) peers.add(`${i},${col}`);
+    }
+    const boxR = Math.floor(row / 3) * 3;
+    const boxC = Math.floor(col / 3) * 3;
+    for (let r = boxR; r < boxR + 3; r++) {
+      for (let c = boxC; c < boxC + 3; c++) {
+        if (r === row && c === col) continue;
+        peers.add(`${r},${c}`);
+      }
+    }
+    return Array.from(peers).map(s => {
+      const [r, c] = s.split(',').map(Number);
+      return { row: r, col: c };
+    });
+  }
+
   handleCellInput(num) {
     if (!this.selectedCell || this.isVictory || this.isPaused) return;
     const {row, col} = this.selectedCell;
@@ -297,20 +333,43 @@ class SudokuCanvasGame {
         }
       }
       this.currentBoard[row][col] = 0;
+
+      const newNotes = new Set(this.notes[row][col]);
+      const newVal = this.currentBoard[row][col];
+      if (prevVal !== newVal || [...prevNotes].join(',') !== [...newNotes].join(',')) {
+        this.undoStack.push({row, col, prevVal, newVal, prevNotes, newNotes});
+        this.updateUndoButton();
+      }
+
     } else {
+      // Not note mode: placing a number clears notes in peers automatically (issue #2)
       if (num === 0 || prevVal === num) {
         this.currentBoard[row][col] = 0;
+        const newNotesEmpty = new Set(this.notes[row][col]);
+        const newValEmpty = this.currentBoard[row][col];
+        if (prevVal !== newValEmpty || [...prevNotes].join(',') !== [...newNotesEmpty].join(',')) {
+          this.undoStack.push({row, col, prevVal, newVal: newValEmpty, prevNotes, newNotes: newNotesEmpty});
+          this.updateUndoButton();
+        }
       } else {
+        // Place the number and remove that number from notes in peer cells
         this.currentBoard[row][col] = num;
+        const clearedNotes = [];
+        const peers = this.getPeers(row, col);
+        peers.forEach(p => {
+          if (this.notes[p.row][p.col].has(num)) {
+            const prev = new Set(this.notes[p.row][p.col]);
+            this.notes[p.row][p.col].delete(num);
+            const after = new Set(this.notes[p.row][p.col]);
+            clearedNotes.push({ row: p.row, col: p.col, prevNotes: prev, newNotes: after });
+          }
+        });
+
+        const newNotesForCell = new Set(this.notes[row][col]);
+        const newValForCell = this.currentBoard[row][col];
+        this.undoStack.push({ row, col, prevVal, newVal: newValForCell, prevNotes, newNotes: newNotesForCell, clearedNotes });
+        this.updateUndoButton();
       }
-    }
-
-    const newNotes = new Set(this.notes[row][col]);
-    const newVal = this.currentBoard[row][col];
-
-    if (prevVal !== newVal || [...prevNotes].join(',') !== [...newNotes].join(',')) {
-      this.undoStack.push({row, col, prevVal, newVal, prevNotes, newNotes});
-      this.updateUndoButton();
     }
 
     this.updateConflicts();
@@ -345,6 +404,14 @@ class SudokuCanvasGame {
     if (this.undoStack.length === 0 || this.isVictory || this.isPaused) return;
 
     const action = this.undoStack.pop();
+
+    // Restore any cleared notes from a placement
+    if (Array.isArray(action.clearedNotes)) {
+      action.clearedNotes.forEach(item => {
+        this.notes[item.row][item.col] = new Set(item.prevNotes || []);
+      });
+    }
+
     const {row, col, prevVal, prevNotes} = action;
 
     this.currentBoard[row][col] = prevVal;
@@ -371,12 +438,40 @@ class SudokuCanvasGame {
 
     const selectedVal = this.selectedCell ? this.currentBoard[this.selectedCell.row][this.selectedCell.col] : null;
 
+    // Compute highlight mask if a number is highlighted (issue #4)
+    let highlightMask = Array(9).fill(null).map(() => Array(9).fill(false));
+    if (this.highlightNumber) {
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (this.currentBoard[r][c] === this.highlightNumber) {
+            // mark entire row
+            for (let cc = 0; cc < 9; cc++) highlightMask[r][cc] = true;
+            // mark entire column
+            for (let rr = 0; rr < 9; rr++) highlightMask[rr][c] = true;
+            // mark box
+            const boxR = Math.floor(r / 3) * 3;
+            const boxC = Math.floor(c / 3) * 3;
+            for (let br = boxR; br < boxR + 3; br++) {
+              for (let bc = boxC; bc < boxC + 3; bc++) {
+                highlightMask[br][bc] = true;
+              }
+            }
+          }
+        }
+      }
+    }
+
     for (let r = 0; r < 9; r++) {
       for (let c = 0; c < 9; c++) {
         const x = c * cs;
         const y = r * cs;
 
         let bgColor = '#0f172a';
+
+        // Apply highlight color if applicable (low precedence)
+        if (this.highlightNumber && highlightMask[r][c]) {
+          bgColor = '#065f46'; // emerald-like highlight
+        }
 
         if (this.selectedCell) {
           const {row: selR, col: selC} = this.selectedCell;
@@ -495,6 +590,8 @@ class SudokuCanvasGame {
 
       if (row >= 0 && row < 9 && col >= 0 && col < 9) {
         this.selectedCell = {row, col};
+        // Clear any number highlight when user selects a cell
+        this.highlightNumber = null;
         this.vibrate(8);
         this.render();
       }
@@ -506,7 +603,7 @@ class SudokuCanvasGame {
     document.querySelectorAll('.num-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const key = parseInt(btn.getAttribute('data-key'));
-        this.handleCellInput(key);
+        this.handleNumberButton(key);
       });
     });
 
@@ -585,6 +682,25 @@ class SudokuCanvasGame {
       this.startTimer();
       pauseOverlay.classList.add('hidden');
     });
+  }
+
+  // When number button clicked without cell selected, toggle highlight; otherwise place number
+  handleNumberButton(key) {
+    if (this.selectedCell) {
+      this.handleCellInput(key);
+      // after placing, clear highlight (if any)
+      this.highlightNumber = null;
+      return;
+    }
+
+    if (this.highlightNumber === key) {
+      this.highlightNumber = null;
+      this.showToast(`Highlight cleared`);
+    } else {
+      this.highlightNumber = key;
+      this.showToast(`Highlighting ${key}`);
+    }
+    this.render();
   }
 
   startTimer() {
