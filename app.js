@@ -1,3 +1,5 @@
+import { SudokuCanvasGame } from "./js/game.js";
+
 // Generate and inject PWA Web App Manifest from a Blob
 const manifestBlob = new Blob([JSON.stringify({
   name: "Sudoku Canvas Game",
@@ -89,7 +91,7 @@ window.addEventListener('load', () => {
     importBtn.addEventListener('click', () => {
       if (window.sudokuGame) {
         const boardStr = prompt('Paste an 81-digit Sudoku board string (use 0 for empty cells):');
-        if (boardStr === null) return; // User cancelled
+        if (boardStr === null) return;
         const cleanedStr = boardStr.trim();
         if (cleanedStr.length === 81 && /^[0-9]+$/.test(cleanedStr)) {
           if (window.location.hash === '#board=' + cleanedStr) {
